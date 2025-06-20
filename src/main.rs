@@ -14,7 +14,6 @@ struct Args;
 #[derive(Debug)]
 enum Token {
     Echo,
-    Rsh,
     Ls,
     Cat,
     Clear,
@@ -32,7 +31,6 @@ fn main() {
         let input = input.trim();
         let token = match input.split_whitespace().next() {
             Some("echo") => Token::Echo,
-            Some("rsh") => Token::Rsh,
             Some("ls") => Token::Ls,
             Some("clear") => Token::Clear,
             Some("type") => Token::Type,
@@ -82,16 +80,6 @@ fn accept_command(token: Token, input: &str) {
         }
         Token::Clear => {
             clearscreen::clear().expect("failed to clear screen");
-        }
-        Token::Rsh => {
-            let output = input.strip_prefix("rsh").unwrap_or("").trim();
-            let version = 1.0;
-            let help = "Help";
-            match output {
-                "--version" => println!("{}", version),
-                "--help" => println!("{}", help),
-                _ => panic!(),
-            }
         }
         Token::Cat => {
             let out = input.strip_prefix("cat").unwrap_or("").trim();
