@@ -1,6 +1,16 @@
+use clap::Parser;
 use std::error::Error;
 use std::io::Write;
 use std::{fs, io};
+
+#[derive(Parser, Debug)]
+#[command(
+    name = "rsh",
+    version,
+    about = "A blazingly fast shell",
+    author = "xsoder"
+)]
+struct Args;
 #[derive(Debug)]
 enum Token {
     Echo,
@@ -13,6 +23,7 @@ enum Token {
     Unknown,
 }
 fn main() {
+    let _ = Args::parse();
     loop {
         print!("$ ");
         io::stdout().flush().unwrap();
