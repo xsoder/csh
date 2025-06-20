@@ -4,7 +4,7 @@ use std::io::Write;
 enum Token {
     Echo,
     Cat,
-    Tp,
+    Type,
     Exit,
     Unknown,
 }
@@ -26,7 +26,7 @@ fn main() {
         let input = input.trim();
         let token = match input.split_whitespace().next() {
             Some("echo") => Token::Echo,
-            Some("type") => Token::Tp,
+            Some("type") => Token::Type,
             Some("cat") => Token::Cat,
             Some("exit") => Token::Exit,
             _ => Token::Unknown,
@@ -44,7 +44,7 @@ fn accept_command(_cmd: &Command, token: Token, input: &str) {
         Token::Cat => {
             todo!();
         }
-        Token::Tp => {
+        Token::Type => {
             let tp = input.strip_prefix("type").unwrap_or("").trim();
             println!("This command is {}", tp);
         }
