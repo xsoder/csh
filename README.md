@@ -5,6 +5,7 @@ POSIX shell written in rust.
 ## Tools I referenced
 
 [Rust Book](https://doc.rust-lang.org)
+
 [Wikipedia](https://wikipedia.org)
 
 ## Introduction
