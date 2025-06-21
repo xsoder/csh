@@ -24,11 +24,19 @@ enum Token {
 }
 fn main() {
     let _ = Args::parse();
+    ctrlc::set_handler(move || {
+        print!("\n$ ");
+        io::stdout().flush().unwrap();
+    })
+    .expect("Error setting Ctrl-C handler");
     loop {
         print!("$ ");
         io::stdout().flush().unwrap();
         let mut input = String::new();
-        let _ = io::stdin().read_line(&mut input).unwrap();
+        if io::stdin().read_line(&mut input).is_err() {
+            println!("Failed to read line");
+            continue;
+        }
         let input = input.trim();
         let token = match input.split_whitespace().next() {
             Some("echo") => Token::Echo,
