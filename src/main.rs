@@ -1,52 +1,108 @@
-use std::io;
+use clap::Parser;
+use std::error::Error;
 use std::io::Write;
+use std::{fs, io};
+
+#[derive(Parser, Debug)]
+#[command(
+    name = "rsh",
+    version,
+    about = "A blazingly fast shell",
+    author = "xsoder"
+)]
+struct Args;
 #[derive(Debug)]
 enum Token {
     Echo,
+    Ls,
     Cat,
+    Clear,
     Type,
     Exit,
     Unknown,
 }
-struct Command {
-    status: i32,
-    output: String,
-}
 fn main() {
-    let cmd = Command {
-        status: 0,
-        output: "$".to_string(),
-    };
-    let input = &mut String::new();
+    let _ = Args::parse();
     loop {
-        input.clear();
         print!("$ ");
         io::stdout().flush().unwrap();
-        let _ = io::stdin().read_line(input).unwrap();
+        let mut input = String::new();
+        let _ = io::stdin().read_line(&mut input).unwrap();
         let input = input.trim();
         let token = match input.split_whitespace().next() {
             Some("echo") => Token::Echo,
+            Some("ls") => Token::Ls,
+            Some("clear") => Token::Clear,
             Some("type") => Token::Type,
             Some("cat") => Token::Cat,
             Some("exit") => Token::Exit,
             _ => Token::Unknown,
         };
-        accept_command(&cmd, token, input);
+        accept_command(token, input);
     }
 }
 
-fn accept_command(_cmd: &Command, token: Token, input: &str) {
+fn cat_command(out: String) -> Result<(), Box<dyn Error>> {
+    match out.find(">") {
+        Some(index) => {
+            if index == 0 {
+                let file_path = &out[index + 1..].trim_start();
+                match file_path.find("<<") {
+                    Some(index) => {
+                        println!("{}", index);
+                    }
+                    None => {
+                        print!("> ");
+                        io::stdout().flush().unwrap();
+                        let mut input = String::new();
+                        let _ = io::stdin().read_line(&mut input).unwrap();
+                        let input = input.trim();
+                        _ = fs::write(file_path, input);
+                    }
+                }
+            }
+        }
+        None => {
+            let message: String = fs::read_to_string(out)?;
+            println!("{}", message);
+        }
+    }
+    return Ok(());
+}
+fn accept_command(token: Token, input: &str) {
     match token {
+        Token::Ls => {
+            todo!();
+        }
         Token::Echo => {
             let output = input.strip_prefix("echo").unwrap_or("").trim();
             println!("{}", output);
         }
+        Token::Clear => {
+            clearscreen::clear().expect("failed to clear screen");
+        }
         Token::Cat => {
-            todo!();
+            let out = input.strip_prefix("cat").unwrap_or("").trim();
+            let _ = cat_command(out.to_string());
         }
         Token::Type => {
-            let tp = input.strip_prefix("type").unwrap_or("").trim();
-            println!("This command is {}", tp);
+            let out = input.strip_prefix("type").unwrap_or("").trim();
+            let commands: &[String] = &[
+                "echo".to_string(),
+                "cat".to_string(),
+                "ls".to_string(),
+                "clear".to_string(),
+                "type".to_string(),
+                "exit".to_string(),
+            ];
+            for command in commands {
+                if command == out {
+                    println!("This type is command");
+                    break;
+                } else {
+                    continue;
+                }
+            }
         }
         Token::Exit => std::process::exit(0),
         Token::Unknown => {
