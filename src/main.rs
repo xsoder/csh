@@ -93,7 +93,18 @@ fn list_command(input: &str) {
     match path.find("-") {
         Some(index) => {
             if index == 0 {
-                let _file_path = &path[index + 1..].trim_start();
+                let flag = &path[index + 1..].trim_start();
+                let _flags = match flag.split_whitespace().next() {
+                    Some("la") => {
+                        todo!()
+                    }
+                    Some("ll") => {
+                        todo!()
+                    }
+                    _ => panic!(),
+                };
+            } else {
+                println!("Invalid Error");
             }
         }
         None => {
