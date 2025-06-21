@@ -8,7 +8,7 @@ use std::{fs, io};
 #[command(
     name = "rsh",
     version,
-    about = "A blazingly fast shell",
+    about = "A blazingly fast shell written in rust.",
     author = "xsoder"
 )]
 struct Args;
