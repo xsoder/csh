@@ -15,6 +15,7 @@ struct Args;
 #[derive(Debug)]
 enum Token {
     Echo,
+    Alias,
     Ls,
     Cat,
     Clear,
@@ -43,6 +44,7 @@ fn main() {
             Some("ls") => Token::Ls,
             Some("clear") => Token::Clear,
             Some("type") => Token::Type,
+            Some("alias") => Token::Alias,
             Some("cat") => Token::Cat,
             Some("exit") => Token::Exit,
             _ => Token::Unknown,
@@ -134,6 +136,9 @@ fn accept_command(token: Token, input: &str) {
         Token::Ls => {
             list_command(input);
         }
+        Token::Alias => {
+            alias(input);
+        }
         Token::Echo => {
             let output = input.strip_prefix("echo").unwrap_or("").trim();
             println!("{}", output);
@@ -150,6 +155,7 @@ fn accept_command(token: Token, input: &str) {
             let commands: &[String] = &[
                 "echo".to_string(),
                 "cat".to_string(),
+                "alias".to_string(),
                 "ls".to_string(),
                 "clear".to_string(),
                 "type".to_string(),
@@ -169,4 +175,7 @@ fn accept_command(token: Token, input: &str) {
             println!("Enter a valid input")
         }
     }
+}
+fn alias(input: &str) {
+    let _path = input.strip_prefix("alias").unwrap_or("").trim();
 }
