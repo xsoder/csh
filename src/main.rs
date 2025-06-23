@@ -69,10 +69,11 @@ fn list_command(input: &str) {
                 let flag = &path[index + 1..].trim_start();
                 let _flags = match flag.split_whitespace().next() {
                     Some("la") => {
-			print!("this is from la")
+			print!("this is from la");
                     }
                     Some("ll") => {
-                        todo!()
+			print!("this is from la");
+			todo!();
                     }
                     _ => panic!(),
                 };
@@ -94,6 +95,8 @@ fn list_command(input: &str) {
     }
     print!("\n")
 }
+
+// Accepting Commands
 fn accept_command(token: Token, input: &str) {
     match token {
         Token::Ls => {
@@ -139,6 +142,7 @@ fn accept_command(token: Token, input: &str) {
         }
     }
 }
+
 fn alias(input: &str) -> &str {
     let command = input.strip_prefix("alias").unwrap_or("").trim();
     let var: &str;
@@ -164,22 +168,24 @@ fn echo_command(output: &str) {
     match output.find("-"){
 	Some(index) => {
 	    let main_flag = &output[index + 1..].trim_start();
-	    println!("{}", main_flag)
-	   // let flags = String::from(flag_main);
-	   // let _ = match flags.chars().nth(1).unwrap() {
-	   //	Some("e") => {
-	   //	    println!("{}",main_flag);
-	   //	},
-	   //	Some("n") => {
-	   //	    println!("{}",main_flag);
-	   //	},
-	   //	Some("E") => {
-	   //	    println!("{}",main_flag);
-	   //	},
-	   //	_ => {
-	   //	    panic!();
-	   //	}
-	   }
+	    println!("{}", main_flag);
+	    // TODO: Implementation of flags
+	    //let fg = main_flag.chars().nth(1).unwrap();
+	    //println!("{}", fg);
+	    //let _ = flags.chars().nth(1).unwrap();
+		//Some("e") => {
+		//    println!("{}",main_flag);
+		//},
+		//Some("n") => {
+		//    println!("{}",main_flag);
+		//},
+		//Some("E") => {
+		//    println!("{}",main_flag);
+		//},
+		//_ => {
+		//    panic!();
+		//}
+	    }
 	None => {
 	    println!("{}",output);
 	}
