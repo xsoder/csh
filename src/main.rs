@@ -3,7 +3,10 @@ use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::{fs, io};
-
+use std::collections::HashMap;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+#[warn(unused_imports)]
 #[derive(Parser, Debug)]
 #[command(
     name = "rsh",
@@ -23,13 +26,9 @@ enum Token {
     Exit,
     Unknown,
 }
-
-//#[derive(Debug)]
-//struct Buffer {
-//   value: String,
-//   status: i32,
-//   aliased: String,
-//}
+lazy_static! {
+    static ref ALIASES: Mutex<HashMap<String, String>> = Mutex::new(HashMap::new());
+}
 
 fn main() {
     let _ = Args::parse();
@@ -47,7 +46,8 @@ fn main() {
             continue;
         }
         let input = input.trim();
-        let token = match input.split_whitespace().next() {
+	let resolved_input = resolve_alias(input);
+        let token = match resolved_input.split_whitespace().next() {
             Some("echo") => Token::Echo,
             Some("ls") => Token::Ls,
             Some("clear") => Token::Clear,
@@ -61,7 +61,7 @@ fn main() {
     }
 }
 
-fn list_command(input: &str) {
+fn list_command(input: &str,) {
     let path = input.strip_prefix("ls").unwrap_or("").trim();
     match path.find("-") {
         Some(index) => {
@@ -70,6 +70,7 @@ fn list_command(input: &str) {
                 let _flags = match flag.split_whitespace().next() {
                     Some("la") => {
 			print!("this is from la");
+			todo!();
                     }
                     Some("ll") => {
 			print!("this is from la");
@@ -96,7 +97,6 @@ fn list_command(input: &str) {
     print!("\n")
 }
 
-// Accepting Commands
 fn accept_command(token: Token, input: &str) {
     match token {
         Token::Ls => {
@@ -143,26 +143,45 @@ fn accept_command(token: Token, input: &str) {
     }
 }
 
-fn alias(input: &str) -> &str {
+fn alias(input: &str) {
     let command = input.strip_prefix("alias").unwrap_or("").trim();
-    let var: &str;
-    match command.find(" ") {
+    if command.is_empty() {
+        let aliases = ALIASES.lock().unwrap();
+        if aliases.is_empty() {
+            println!("No aliases defined");
+        } else {
+            for (alias, command) in aliases.iter() {
+                println!("{}='{}'", alias, command);
+            }
+        }
+        return;
+    }
+    match command.find('=') {
         Some(index) => {
-            let strip_command = &command[index + 1..].trim_start();
-            let alias_command = &command[..index].trim_end();
-            var = alias_command;
-	    if var == "" {
-		panic!("alias not recored");
-	    }
-            println!("Stripped command: {}", strip_command);
-            println!("Aliased command: {}", alias_command);
+            let alias_name = command[..index].trim();
+            let alias_command = command[index + 1..].trim();
+            if alias_name.is_empty() {
+                println!("Error: Alias name cannot be empty");
+                return;
+            }
+            if alias_command.is_empty() {
+                println!("Error: Alias command cannot be empty");
+                return;
+            }
+            let alias_command = alias_command.trim_matches('"').trim_matches('\'');
+            add_alias(alias_name.to_string(), alias_command.to_string());
+            println!("Alias '{}' created for '{}'", alias_name, alias_command);
         }
         None => {
-	    panic!("This is an command invalid type");
+            let aliases = ALIASES.lock().unwrap();
+            if let Some(alias_value) = aliases.get(command) {
+                println!("{}='{}'", command, alias_value);
+            } else {
+                println!("Error: Invalid alias syntax. Use: alias name=command");
+            }
         }
     }
-    return var;
-    }
+}
 // Echo command
 fn echo_command(output: &str) {
     match output.find("-"){
@@ -238,4 +257,28 @@ fn cat_command(out: String) -> Result<(), Box<dyn Error>> {
 	}
     }
     return Ok(());
+}
+
+fn resolve_alias(input: &str) -> String {
+    let parts: Vec<&str> = input.split_whitespace().collect();
+    if let Some(word) = parts.first() {
+        let aliases = ALIASES.lock().unwrap();
+        if let Some(alias_value) = aliases.get(*word) {
+            let remaining = parts[1..].join(" ");
+            if remaining.is_empty() {
+                alias_value.clone()
+            } else {
+                format!("{} {}", alias_value, remaining)
+            }
+        } else {
+            input.to_string()
+        }
+    } else {
+        input.to_string()
+    }
+}
+
+fn add_alias(alias_name: String, command: String) {
+    let mut aliases = ALIASES.lock().unwrap();
+    aliases.insert(alias_name, command);
 }
